@@ -1,0 +1,210 @@
+{
+  "network_metadata": {
+    "repository": "matplotlib/matplotlib",
+    "num_nodes": 30,
+    "num_edges": 31,
+    "collection_method": "github_api",
+    "features": [
+      "user_id",
+      "contributions",
+      "public_repos",
+      "followers",
+      "following",
+      "created_at",
+      "location",
+      "company",
+      "account_type",
+      "degree",
+      "betweenness_centrality",
+      "closeness_centrality",
+      "influence_level"
+    ],
+    "network_type": "collaboration"
+  },
+  "collection_date": "2025-09-09T02:58:52.314185",
+  "source": "github",
+  "structure_analysis": {
+    "basic_stats": {
+      "num_nodes": 24,
+      "num_edges": 28,
+      "density": 0.10144927536231885,
+      "average_clustering": 0.23680555555555557,
+      "is_connected": false
+    },
+    "connectivity": {
+      "num_connected_components": 3,
+      "largest_component_size": 19
+    },
+    "degree_distribution": {
+      "mean_degree": 2.3333333333333335,
+      "std_degree": 3.009245014211298,
+      "max_degree": 16,
+      "min_degree": 1
+    },
+    "communities": {
+      "num_communities": 6,
+      "modularity": 0.02719907407407408,
+      "largest_community_size": 10
+    }
+  },
+  "influential_nodes": {
+    "degree": [
+      [
+        "web-flow",
+        0.6956521739130435
+      ],
+      [
+        "meeseeksmachine",
+        0.21739130434782608
+      ],
+      [
+        "timhoffm",
+        0.13043478260869565
+      ],
+      [
+        "dstansby",
+        0.13043478260869565
+      ],
+      [
+        "ksunden",
+        0.13043478260869565
+      ],
+      [
+        "rcomer",
+        0.08695652173913043
+      ],
+      [
+        "QuLogic",
+        0.08695652173913043
+      ],
+      [
+        "tacaswell",
+        0.08695652173913043
+      ],
+      [
+        "ianthomas23",
+        0.08695652173913043
+      ],
+      [
+        "dopplershift",
+        0.08695652173913043
+      ]
+    ],
+    "betweenness": [
+      [
+        "web-flow",
+        0.533596837944664
+      ],
+      [
+        "dstansby",
+        0.07509881422924901
+      ],
+      [
+        "meeseeksmachine",
+        0.02766798418972332
+      ],
+      [
+        "timhoffm",
+        0.011857707509881424
+      ],
+      [
+        "ksunden",
+        0.011857707509881424
+      ],
+      [
+        "tacaswell",
+        0.007905138339920948
+      ],
+      [
+        "ianthomas23",
+        0.007905138339920948
+      ],
+      [
+        "rcomer",
+        0.0
+      ],
+      [
+        "story645",
+        0.0
+      ],
+      [
+        "scottshambaugh",
+        0.0
+      ]
+    ],
+    "pagerank": [
+      [
+        "web-flow",
+        0.30773718104947845
+      ],
+      [
+        "timhoffm",
+        0.09434432419400478
+      ],
+      [
+        "dstansby",
+        0.04821053137452566
+      ],
+      [
+        "ksunden",
+        0.04768870960219758
+      ],
+      [
+        "meeseeksmachine",
+        0.044806662196934695
+      ],
+      [
+        "tacaswell",
+        0.043476232835852474
+      ],
+      [
+        "QuLogic",
+        0.04287647384571699
+      ],
+      [
+        "jklymak",
+        0.041666666666666664
+      ],
+      [
+        "anntzer",
+        0.041666666666666664
+      ],
+      [
+        "dopplershift",
+        0.041666666666666664
+      ]
+    ]
+  },
+  "node_statistics": {
+    "total_nodes": 30,
+    "features": [
+      "user_id",
+      "contributions",
+      "public_repos",
+      "followers",
+      "following",
+      "created_at",
+      "location",
+      "company",
+      "account_type",
+      "degree",
+      "betweenness_centrality",
+      "closeness_centrality",
+      "influence_level"
+    ],
+    "label_distribution": {
+      "high_influence": 30
+    }
+  },
+  "edge_statistics": {
+    "total_edges": 31,
+    "edge_types": {
+      "co_contribution": 22,
+      "follows": 9
+    },
+    "weight_distribution": {
+      "mean": 2.4193548387096775,
+      "std": 3.106704508514739
+    }
+  }
+}

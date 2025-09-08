@@ -1,0 +1,9 @@
+torch==1.12.0
+torch-geometric==2.1.0
+scikit-learn==1.1.1
+networkx==2.8.4
+matplotlib
+pandas
+d3py  # if using D3 integration
+numpy
+praw

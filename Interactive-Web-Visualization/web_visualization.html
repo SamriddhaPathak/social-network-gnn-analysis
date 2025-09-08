@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Network Analysis Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            transition: transform 0.3s ease;
+        }
+        
+        .dashboard-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .dashboard-item h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .network-vis {
+            grid-column: span 2;
+            height: 500px;
+        }
+        
+        .controls {
+            grid-column: span 2;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .control-item label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, input[type="range"], button {
+            padding: 8px 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input[type="range"]:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .confidence-bar {
+            width: 100px;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, #e74c3c, #f39c12, #27ae60);
+            transition: width 0.3s ease;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        
+        .icon {
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .network-vis {
+                grid-column: span 1;
+                height: 400px;
+            }
+            
+            .controls {
+                grid-column: span 1;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Social Network Analysis Dashboard</h1>
+            <p>Interactive exploration of graph neural networks and social network properties</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="dataset-select">Dataset:</label>
+                    <select id="dataset-select">
+                        <option value="reddit">Reddit Communities</option>
+                        <option value="financial">Financial Network</option>
+                        <option value="social">Social Media</option>
+                        <option value="academic">Academic Citations</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label for="model-select">Model:</label>
+                    <select id="model-select">
+                        <option value="gcn">Graph Convolutional Network</option>
+                        <option value="gat">Graph Attention Network</option>
+                        <option value="sage">GraphSAGE</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label for="node-size">Node Size:</label>
+                    <input type="range" id="node-size" min="2" max="15" value="5">
+                </div>
+                
+                <div class="control-item">
+                    <label for="link-distance">Link Distance:</label>
+                    <input type="range" id="link-distance" min="10" max="100" value="50">
+                </div>
+                
+                <button id="analyze-btn">Analyze Network</button>
+                <button id="predict-btn">Run Predictions</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-item network-vis">
+                <h3><span class="icon">🌐</span> Network Visualization</h3>
+                <div id="network-container"></div>
+                <div class="legend" id="network-legend"></div>
+            </div>
+            
+            <div class="dashboard-item">
+                <h3><span class="icon"></span> Network Metrics</h3>
+                <div id="metrics-container">
+                    <div class="metric-card">
+                        <div class="metric-value" id="num-nodes">0</div>
+                        <div class="metric-label">Nodes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="num-edges">0</div>
+                        <div class="metric-label">Edges</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="homophily">0.00</div>
+                        <div class="metric-label">Homophily</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="modularity">0.00</div>
+                        <div class="metric-label">Modularity</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-item">
+                <h3><span class="icon"></span> Model Performance</h3>
+                <div id="performance-container">
+                    <div class="metric-card">
+                        <div class="metric-value" id="accuracy">0.00</div>
+                        <div class="metric-label">Accuracy</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="f1-score">0.00</div>
+                        <div class="metric-label">F1 Score</div>
+                    </div>
+                </div>
+                <div id="confusion-matrix"></div>
+            </div>
+            
+            <div class="dashboard-item">
+                <h3><span class="icon"></span> Node Predictions</h3>
+                <div id="predictions-container">
+                    <p style="text-align: center; color: #7f8c8d; margin: 20px 0;">
+                        Click "Run Predictions" to see model predictions for individual nodes
+                    </p>
+                </div>
+            </div>
+            
+            <div class="dashboard-item">
+                <h3><span class="icon"></span> Training Progress</h3>
+                <div id="training-plot"></div>
+            </div>
+            
+            <div class="dashboard-item">
+                <h3><span class="icon"></span> Model Comparison</h3>
+                <div id="comparison-plot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data and configurations
+        const datasets = {
+            reddit: {
+                name: "Reddit Communities",
+                nodes: 150,
+                edges: 800,
+                classes: ["MachineLearning", "DataScience", "Python", "Programming", "AI"],
+                colors: ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6"]
+            },
+            financial: {
+                name: "Financial Network",
+                nodes: 200,
+                edges: 600,
+                classes: ["Normal", "Fraudulent"],
+                colors: ["#27ae60", "#e74c3c"]
+            },
+            social: {
+                name: "Social Media",
+                nodes: 300,
+                edges: 1200,
+                classes: ["Regular", "Micro-Influencer", "Macro-Influencer", "Celebrity"],
+                colors: ["#95a5a6", "#3498db", "#f39c12", "#e74c3c"]
+            },
+            academic: {
+                name: "Academic Citations",
+                nodes: 100,
+                edges: 400,
+                classes: ["Neural Networks", "Computer Vision", "NLP", "Robotics"],
+                colors: ["#1abc9c", "#3498db", "#9b59b6", "#e67e22"]
+            }
+        };
+
+        let currentDataset = 'reddit';
+        let currentModel = 'gcn';
+        let simulation;
+        let svg;
+        
+        // Initialize dashboard
+        function initializeDashboard() {
+            updateMetrics();
+            createNetworkVisualization();
+            createTrainingPlot();
+            createComparisonPlot();
+        }
+        
+        // Generate sample network data
+        function generateNetworkData() {
+            const dataset = datasets[currentDataset];
+            const nodes = [];
+            const links = [];
+            
+            // Create nodes
+            for (let i = 0; i < dataset.nodes; i++) {
+                const classIndex = Math.floor(Math.random() * dataset.classes.length);
+                nodes.push({
+                    id: i,
+                    name: `Node ${i}`,
+                    class: classIndex,
+                    className: dataset.classes[classIndex],
+                    prediction: Math.random() > 0.1 ? classIndex : (classIndex + 1) % dataset.classes.length,
+                    confidence: 0.6 + Math.random() * 0.4
+                });
+            }
+            
+            // Create links based on class similarity
+            for (let i = 0; i < dataset.edges; i++) {
+                const source = Math.floor(Math.random() * dataset.nodes);
+                let target = Math.floor(Math.random() * dataset.nodes);
+                
+                // Bias towards same-class connections (homophily)
+                if (Math.random() > 0.7) {
+                    const sameClassNodes = nodes.filter(n => n.class === nodes[source].class);
+                    if (sameClassNodes.length > 1) {
+                        target = sameClassNodes[Math.floor(Math.random() * sameClassNodes.length)].id;
+                    }
+                }
+                
+                if (source !== target) {
+                    links.push({ source, target });
+                }
+            }
+            
+            return { nodes, links };
+        }
+        
+        // Create network visualization
+        function createNetworkVisualization() {
+            const container = d3.select("#network-container");
+            container.selectAll("*").remove();
+            
+            const width = container.node().getBoundingClientRect().width;
+            const height = 400;
+            
+            svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            
+            const data = generateNetworkData();
+            const dataset = datasets[currentDataset];
+            
+            // Create color scale
+            const colorScale = d3.scaleOrdinal()
+                .domain(d3.range(dataset.classes.length))
+                .range(dataset.colors);
+            
+            // Create force simulation
+            simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(50))
+                .force("charge", d3.forceManyBody().strength(-100))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(8));
+            
+            // Create links
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(data.links)
+                .enter().append("line")
+                .attr("stroke", "#999")
+                .attr("stroke-opacity", 0.6)
+                .attr("stroke-width", 1);
+            
+            // Create nodes
+            const node = svg.append("g")
+                .selectAll("circle")
+                .data(data.nodes)
+                .enter().append("circle")
+                .attr("r", 5)
+                .attr("fill", d => colorScale(d.class))
+                .attr("stroke", d => d.class === d.prediction ? "#fff" : "#e74c3c")
+                .attr("stroke-width", d => d.class === d.prediction ? 2 : 3)
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+            
+            // Add node labels on hover
+            node.append("title")
+                .text(d => `${d.name}\nTrue: ${d.className}\nPredicted: ${dataset.classes[d.prediction]}\nConfidence: ${(d.confidence * 100).toFixed(1)}%`);
+            
+            // Update simulation
+            simulation.on("tick", () => {
+                link.attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                
+                node.attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+            });
+            
+            // Create legend
+            updateLegend(dataset);
+            
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+        
+        // Update legend
+        function updateLegend(dataset) {
+            const legend = d3.select("#network-legend");
+            legend.selectAll("*").remove();
+            
+            dataset.classes.forEach((className, i) => {
+                const item = legend.append("div").attr("class", "legend-item");
+                item.append("div")
+                    .attr("class", "legend-color")
+                    .style("background-color", dataset.colors[i]);
+                item.append("span").text(className);
+            });
+        }
+        
+        // Update metrics
+        function updateMetrics() {
+            const dataset = datasets[currentDataset];
+            const homophily = 0.65 + Math.random() * 0.25;
+            const modularity = 0.3 + Math.random() * 0.4;
+            
+            document.getElementById("num-nodes").textContent = dataset.nodes;
+            document.getElementById("num-edges").textContent = dataset.edges;
+            document.getElementById("homophily").textContent = homophily.toFixed(3);
+            document.getElementById("modularity").textContent = modularity.toFixed(3);
+        }
+        
+        // Update performance metrics
+        function updatePerformance() {
+            const accuracy = 0.75 + Math.random() * 0.2;
+            const f1Score = 0.7 + Math.random() * 0.25;
+            
+            document.getElementById("accuracy").textContent = accuracy.toFixed(3);
+            document.getElementById("f1-score").textContent = f1Score.toFixed(3);
+            
+            // Create confusion matrix
+            createConfusionMatrix();
+        }
+        
+        // Create confusion matrix
+        function createConfusionMatrix() {
+            const dataset = datasets[currentDataset];
+            const numClasses = dataset.classes.length;
+            
+            // Generate sample confusion matrix
+            const matrix = [];
+            for (let i = 0; i < numClasses; i++) {
+                const row = [];
+                for (let j = 0; j < numClasses; j++) {
+                    if (i === j) {
+                        row.push(20 + Math.floor(Math.random() * 30));
+                    } else {
+                        row.push(Math.floor(Math.random() * 10));
+                    }
+                }
+                matrix.push(row);
+            }
+            
+            const trace = {
+                z: matrix,
+                x: dataset.classes,
+                y: dataset.classes,
+                type: 'heatmap',
+                colorscale: 'Blues',
+                showscale: false
+            };
+            
+            const layout = {
+                title: 'Confusion Matrix',
+                xaxis: { title: 'Predicted' },
+                yaxis: { title: 'True' },
+                width: 300,
+                height: 250,
+                margin: { l: 80, r: 20, t: 40, b: 60 }
+            };
+            
+            Plotly.newPlot('confusion-matrix', [trace], layout, {displayModeBar: false});
+        }
+        
+        // Show predictions
+        function showPredictions() {
+            const container = document.getElementById("predictions-container");
+            const dataset = datasets[currentDataset];
+            
+            // Generate sample predictions
+            let html = "";
+            for (let i = 0; i < Math.min(10, dataset.nodes); i++) {
+                const trueClass = Math.floor(Math.random() * dataset.classes.length);
+                const predClass = Math.random() > 0.15 ? trueClass : Math.floor(Math.random() * dataset.classes.length);
+                const confidence = 0.6 + Math.random() * 0.4;
+                const isCorrect = trueClass === predClass;
+                
+                html += `
+                    <div class="prediction-item" style="border-left-color: ${isCorrect ? '#27ae60' : '#e74c3c'}">
+                        <div>
+                            <strong>Node ${i}</strong><br>
+                            <small>True: ${dataset.classes[trueClass]} → Pred: ${dataset.classes[predClass]}</small>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidence * 100}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Create training progress plot
+        function createTrainingPlot() {
+            const epochs = Array.from({length: 100}, (_, i) => i + 1);
+            const trainLoss = epochs.map(e => 2 * Math.exp(-e/20) + 0.1 + Math.random() * 0.1);
+            const valLoss = epochs.map(e => 2.2 * Math.exp(-e/25) + 0.15 + Math.random() * 0.1);
+            
+            const trace1 = {
+                x: epochs,
+                y: trainLoss,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Training Loss',
+                line: { color: '#3498db' }
+            };
+            
+            const trace2 = {
+                x: epochs,
+                y: valLoss,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Validation Loss',
+                line: { color: '#e74c3c' }
+            };
+            
+            const layout = {
+                title: 'Training Progress',
+                xaxis: { title: 'Epochs' },
+                yaxis: { title: 'Loss' },
+                height: 200,
+                margin: { l: 40, r: 20, t: 40, b: 40 },
+                legend: { x: 0.7, y: 1 }
+            };
+            
+            Plotly.newPlot('training-plot', [trace1, trace2], layout, {displayModeBar: false});
+        }
+        
+        // Create model comparison plot
+        function createComparisonPlot() {
+            const models = ['GCN', 'GAT', 'SAGE'];
+            const accuracy = [0.82, 0.85, 0.79];
+            const f1Scores = [0.80, 0.83, 0.77];
+            
+            const trace1 = {
+                x: models,
+                y: accuracy,
+                type: 'bar',
+                name: 'Accuracy',
+                marker: { color: '#3498db' }
+            };
+            
+            const trace2 = {
+                x: models,
+                y: f1Scores,
+                type: 'bar',
+                name: 'F1 Score',
+                marker: { color: '#2ecc71' }
+            };
+            
+            const layout = {
+                title: 'Model Comparison',
+                xaxis: { title: 'Models' },
+                yaxis: { title: 'Score' },
+                height: 200,
+                margin: { l: 40, r: 20, t: 40, b: 40 },
+                legend: { x: 0.7, y: 1 }
+            };
+            
+            Plotly.newPlot('comparison-plot', [trace1, trace2], layout, {displayModeBar: false});
+        }
+        
+        // Event listeners
+        document.getElementById("dataset-select").addEventListener("change", (e) => {
+            currentDataset = e.target.value;
+            updateMetrics();
+            createNetworkVisualization();
+        });
+        
+        document.getElementById("model-select").addEventListener("change", (e) => {
+            currentModel = e.target.value;
+            updatePerformance();
+        });
+        
+        document.getElementById("node-size").addEventListener("input", (e) => {
+            const size = e.target.value;
+            if (svg) {
+                svg.selectAll("circle").attr("r", size);
+            }
+        });
+        
+        document.getElementById("link-distance").addEventListener("input", (e) => {
+            const distance = e.target.value;
+            if (simulation) {
+                simulation.force("link").distance(distance);
+                simulation.alpha(0.3).restart();
+            }
+        });
+        
+        document.getElementById("analyze-btn").addEventListener("click", () => {
+            updateMetrics();
+            createNetworkVisualization();
+            updatePerformance();
+        });
+        
+        document.getElementById("predict-btn").addEventListener("click", () => {
+            showPredictions();
+            updatePerformance();
+        });
+        
+        // Initialize the dashboard
+        initializeDashboard();
+        updatePerformance();
+    </script>
+</body>
+</html>
