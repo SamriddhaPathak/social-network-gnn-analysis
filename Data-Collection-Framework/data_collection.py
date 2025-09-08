@@ -160,7 +160,7 @@ class GitHubCollaborationNetworkCollector(EthicalDataCollector):
     Collect collaboration networks from GitHub (using public API)
     """
     
-    def __init__(self, github_token = "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", **kwargs):
+    def __init__(self, github_token = "Token", **kwargs):
         super().__init__(**kwargs)
         self.base_url = "https://api.github.com"
         self.headers = {
