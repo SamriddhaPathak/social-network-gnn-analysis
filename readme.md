@@ -48,7 +48,7 @@ The framework supports three types of networks:
 - **Task**: Influence level prediction (4-class classification)
 - **Homophily**: 0.445 (moderate)
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 - Python 3.9+
