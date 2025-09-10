@@ -280,10 +280,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- **Author**: [Your Name]
-- **Institution**: [Your Institution]
-- **Email**: [your.email@institution.edu]
-- **GitHub**: [@your-username](https://github.com/your-username)
+- **Author**: Samriddha Pathak
+- **Email**: samriddhapathak123333@gmail.com
 
 ## Future Work
 
